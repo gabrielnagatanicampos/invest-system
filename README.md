@@ -20,7 +20,7 @@ Abra o seu terminal e execute os comandos abaixo na ordem:
 
 ```bash
 # 1. Clone o repositório
-git clone [https://github.com/gabrielnagatanicampos/invest-system.git](https://github.com/gabrielnagatanicampos/invest-system.git)
+git clone https://github.com/gabrielnagatanicampos/invest-system.git
 
 # 2. Entre na pasta do projeto
 cd invest-system
