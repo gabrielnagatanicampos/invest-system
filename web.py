@@ -50,6 +50,9 @@ if st.session_state["lista_acoes"]:
 else:
     st.sidebar.caption("Nenhuma ação adicionada ainda.")
 
+
+
+# Variáveis para receber metas e quantidades.
 meta = st.sidebar.number_input("Meta para Ações (%)", value = 0.0)
 
 #Adicionar Renda Fixa
@@ -60,11 +63,12 @@ qnt_bit = st.sidebar.number_input("Quantidade em bitcoin", value = 0.0, format="
 
 meta_cripto = st.sidebar.number_input("Meta para Criptomoeda (%)", value = 0.0)
 
+
+
 # Condicional para obter valores de ativos, calcular e apresentar 
 if st.button("Calcular Carteira"):                                              
-
-    obter_preco = st.cache_data(obter_preco)        #Melhora na resposta do site.                            
-
+                          
+    #Convertendo de Dolar para Real
     valor_bitcoin_dolar = obter_preco("BTC-USD")
 
     preco_dolar = obter_preco("BRL=X")
@@ -101,6 +105,9 @@ if st.button("Calcular Carteira"):
 
 
     resultado = calcular_carteira(carteira)
+
+
+    #gerador dashboard. 
 
     st.write("   Relatório  ")
     st.write(f" Patrimônio Total: R$ {resultado['total']:,.2f}")
