@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from regras import calcular_carteira
 from mercado import obter_preco
+from mercado import acoes
 
 obter_preco = st.cache_data(obter_preco)        #Melhora na resposta do site.                            
 
@@ -13,18 +14,32 @@ if "lista_acoes" not in st.session_state:
 
 #Adicionar Ações
 st.sidebar.header('Adicionar ações')
-ticker_input = st.sidebar.text_input('Nome da Ação (EX: PETR4.SA)')
+
+ticker_input = st.sidebar._selectbox(
+    'Selecione a ação:',
+    acoes
+
+
+)
+
 qnt_input = st.sidebar.number_input("Digite a Quantidade", min_value=0, step=1) #Faz o salto do click ser de 1 em 1.
 
 if st.sidebar.button('Adicionar'):
+
     st.session_state["lista_acoes"][ticker_input] = qnt_input
+
     st.sidebar.success(f"{ticker_input} adicionado!")
 
 st.sidebar.markdown("---") 
 
 st.sidebar.write("**Sua Ações Atual:**")
     
+
+
+
+    
 soma_acoes = 0.0 
+
    
 lista_precos = []
 
