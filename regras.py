@@ -1,4 +1,8 @@
 
+
+
+
+
 def calcular_carteira(carteira):
     total = 0
 

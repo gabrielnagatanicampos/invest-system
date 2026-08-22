@@ -1,10 +1,19 @@
 import streamlit as st 
 import pandas as pd
+import numpy as np
 from regras import calcular_carteira
 from mercado import obter_preco
 from mercado import acoes
 
+
 obter_preco = st.cache_data(obter_preco)        #Melhora na resposta do site.                            
+
+st.set_page_config(
+    page_title="System Invest",
+    page_icon="📊",
+    layout= "wide",
+    initial_sidebar_state="expanded",
+)
 
 st.title("  Sistema de investimentos    ")
 
@@ -15,11 +24,12 @@ if "lista_acoes" not in st.session_state:
 #Adicionar Ações
 st.sidebar.header('Adicionar ações')
 
-ticker_input = st.sidebar._selectbox(
+ticker_input = st.sidebar.selectbox(
     'Selecione a ação:',
-    acoes
-
-
+    acoes,
+    index= None,
+    placeholder= 'Digite ou Busque',
+    accept_new_options=True
 )
 
 qnt_input = st.sidebar.number_input("Digite a Quantidade", min_value=0, step=1) #Faz o salto do click ser de 1 em 1.
@@ -32,18 +42,17 @@ if st.sidebar.button('Adicionar'):
 
 st.sidebar.markdown("---") 
 
-st.sidebar.write("**Sua Ações Atual:**")
+st.sidebar.write("**Suas Ações:**")
     
 
 
 
     
 soma_acoes = 0.0 
-
-   
 lista_precos = []
 
-if st.session_state["lista_acoes"]: 
+
+if st.session_state["lista_acoes"]: #Salava ações em caso de Rerun.
         
     
     for ticker, quantidade in st.session_state["lista_acoes"].items():
@@ -54,17 +63,21 @@ if st.session_state["lista_acoes"]:
         lista_precos.append({
             "Ativo": ticker,
             "Qnt": quantidade,
-            "Preço": f"R${preco:.2f}"
+            "Preço": f"R${preco:.2f}",
+            "Total": total_ativo
         })
 
-    tabela_acoes = pd.DataFrame(lista_precos)
-        
+
+
+    df = pd.DataFrame(lista_precos)
+    tabela_acoes = df.sort_values(by=['Qnt', 'Preço'], ascending=False)
     st.sidebar.dataframe(tabela_acoes, hide_index=True, use_container_width=True)     
     
     st.sidebar.metric("Total em ações", f"R${soma_acoes:.2f}")
 else:
     st.sidebar.caption("Nenhuma ação adicionada ainda.")
 
+st.sidebar.markdown("---") 
 
 
 # Variáveis para receber metas e quantidades.
@@ -80,7 +93,7 @@ meta_cripto = st.sidebar.number_input("Meta para Criptomoeda (%)", value = 0.0)
 
 
 
-# Condicional para obter valores de ativos, calcular e apresentar 
+# Botão para obter valores de ativos, calcular e apresentar 
 if st.button("Calcular Carteira"):                                              
                           
     #Convertendo de Dolar para Real
@@ -121,7 +134,6 @@ if st.button("Calcular Carteira"):
 
     resultado = calcular_carteira(carteira)
 
-
     #gerador dashboard. 
 
     st.write("   Relatório  ")
@@ -146,7 +158,11 @@ if st.button("Calcular Carteira"):
         if gap > 0:
             st.info(f" {nome}: COMPRAR R$ {gap:,.2f}")
         else:
-         st.warning(f" {nome}: VENDER R$ {abs(gap):,.2f}")
+            st.warning(f" {nome}: VENDER R$ {abs(gap):,.2f}")
+
+    
+   
+
 
 
     
