@@ -16,6 +16,7 @@ st.set_page_config(
 )
 
 st.title("  Sistema de investimentos    ")
+st.header("Suas Ações:")
 
 #Memória
 if "lista_acoes" not in st.session_state:
@@ -42,7 +43,7 @@ if st.sidebar.button('Adicionar'):
 
 st.sidebar.markdown("---") 
 
-st.sidebar.write("**Suas Ações:**")
+
     
 
 
@@ -62,22 +63,47 @@ if st.session_state["lista_acoes"]: #Salava ações em caso de Rerun.
 
         lista_precos.append({
             "Ativo": ticker,
-            "Qnt": quantidade,
+            "Quantidade": quantidade,
             "Preço": f"R${preco:.2f}",
-            "Total": total_ativo
+            "Total(R$)": total_ativo
         })
 
 
 
     df = pd.DataFrame(lista_precos)
-    tabela_acoes = df.sort_values(by=['Qnt', 'Preço'], ascending=False)
-    st.sidebar.dataframe(tabela_acoes, hide_index=True, use_container_width=True)     
-    
-    st.sidebar.metric("Total em ações", f"R${soma_acoes:.2f}")
+    tabela_acoes = df.sort_values(by='Total(R$)', ascending=False)
+         
+    event = st.dataframe(
+    tabela_acoes,
+    hide_index= True,
+    use_container_width=True,
+    key="tabela_acoes_select",
+    on_select="rerun",
+    selection_mode=["multi-row"],
+)
+    linhas_selecionadas = event.selection["rows"]
+
+    if linhas_selecionadas:
+        tickers_selecionados = tabela_acoes.iloc[linhas_selecionadas]["Ativo"].tolist()
+        st.write(f"Selecionado(s): {', '.join(tickers_selecionados)}")
+
+        if st.button("Remover ação(ões) selecionada(s)"):
+            for ticker in tickers_selecionados:
+                st.session_state["lista_acoes"].pop(ticker, None)
+            st.rerun()
+
+    st.text("Selecione o ativo para remover")
+    col1,col2,col3,col4,col5,col6 = st.columns(6)
+
+    col1.metric(
+        "Total em ações",
+        f"R${soma_acoes:.2f}",
+        delta = None,
+        border= True
+    )
 else:
     st.sidebar.caption("Nenhuma ação adicionada ainda.")
 
-st.sidebar.markdown("---") 
 
 
 # Variáveis para receber metas e quantidades.
@@ -139,6 +165,8 @@ if st.button("Calcular Carteira"):
     st.write("   Relatório  ")
     st.write(f" Patrimônio Total: R$ {resultado['total']:,.2f}")
     st.write(f" Valor do Bitcoin Atual:{valor_bitcoin:,.2f}")
+
+
     df = pd.DataFrame(resultado['itens'])  #transforma o relatorio em uma tabela.
 
     df = df.set_index("nome") #Usa a coluna 'nome' como etiqueta e não dado.
@@ -160,9 +188,4 @@ if st.button("Calcular Carteira"):
         else:
             st.warning(f" {nome}: VENDER R$ {abs(gap):,.2f}")
 
-    
-   
-
-
-
-    
+            
