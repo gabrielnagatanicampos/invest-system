@@ -1,6 +1,8 @@
 import streamlit as st 
 import pandas as pd
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 from regras import calcular_carteira
 from mercado import obter_preco
 from mercado import acoes
@@ -168,8 +170,8 @@ if st.button("Calcular Carteira"):
     )
 
     col3.metric(
-        'Valor do Bitcoin Atual',
-        f"R${valor_bitcoin:,.2f}",
+        'Total em Bitocoin',
+        f"R${s_cripto:,.2f}",
         border= True
     )
 
@@ -189,13 +191,23 @@ if st.button("Calcular Carteira"):
 
     grafico = df[["saldo", "ideal"]] #Duplo colchetes para criar uma nova tabela somente com esses dados selecionador, removendo os outros.
 
-    st.bar_chart(
+    
+    col1.bar_chart(
         grafico,
-        color = ["#FF0000", "#0000FF"],
+        color = [ "#0000FF","#FF0000"],
         horizontal= False,
+        stack= False,
         use_container_width= True
     )
 
+
+    donut_chart = go.Figure(data=[go.Pie(labels=grafico.reset_index()['nome'], values=grafico['saldo'], hole=.3)])
+
+    col2.plotly_chart(
+        donut_chart,
+        theme= 'streamlit',
+        use_container_width= True
+    )
 
 
 
