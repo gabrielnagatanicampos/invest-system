@@ -33,20 +33,3 @@ acoes = acoes = [
     "USIM5.SA","VALE3.SA","VAMO3.SA","VBBR3.SA","VIVA3.SA","VIVT3.SA",
     "WEGE3.SA","YDUQ3.SA",
 ]
-
-
-
-#def list_acoes():
-
-    #acoes = {}
-
-
-    #try:
-    #    info = yf.Ticker(ticker).info
-
-     #   name = info.get('LongName') or info.get('ShortName')
-
-      #  acoes[name] = ticker
-    #except:
-     #   print('erro ao buscar')
-

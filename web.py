@@ -17,7 +17,7 @@ st.set_page_config(
 
 st.title("  Sistema de investimentos    ")
 st.header("Suas Ações:")
-
+st.text("Selecione o ativo para remover")
 #Memória
 if "lista_acoes" not in st.session_state:
     st.session_state["lista_acoes"] = {}
@@ -92,7 +92,7 @@ if st.session_state["lista_acoes"]: #Salava ações em caso de Rerun.
                 st.session_state["lista_acoes"].pop(ticker, None)
             st.rerun()
 
-    st.text("Selecione o ativo para remover")
+    
     col1,col2,col3,col4,col5,col6 = st.columns(6)
 
     col1.metric(
@@ -104,7 +104,7 @@ if st.session_state["lista_acoes"]: #Salava ações em caso de Rerun.
 else:
     st.sidebar.caption("Nenhuma ação adicionada ainda.")
 
-
+1
 
 # Variáveis para receber metas e quantidades.
 meta = st.sidebar.number_input("Meta para Ações (%)", value = 0.0)
@@ -161,11 +161,27 @@ if st.button("Calcular Carteira"):
     resultado = calcular_carteira(carteira)
 
     #gerador dashboard. 
+    col2.metric(
+        'Total em Renda Fixa',
+        f"R${s_rf:.2f}",
+        border= True
+    )
+
+    col3.metric(
+        'Valor do Bitcoin Atual',
+        f"R${valor_bitcoin:,.2f}",
+        border= True
+    )
+
+    col4.metric(
+        'Patrimônio Total(R$)',
+        f"R${resultado['total']:,.2f}",
+        border= True,
+        delta = None,
+        delta_color= 'normal'
+    )
 
     st.write("   Relatório  ")
-    st.write(f" Patrimônio Total: R$ {resultado['total']:,.2f}")
-    st.write(f" Valor do Bitcoin Atual:{valor_bitcoin:,.2f}")
-
 
     df = pd.DataFrame(resultado['itens'])  #transforma o relatorio em uma tabela.
 
@@ -173,7 +189,12 @@ if st.button("Calcular Carteira"):
 
     grafico = df[["saldo", "ideal"]] #Duplo colchetes para criar uma nova tabela somente com esses dados selecionador, removendo os outros.
 
-    st.bar_chart(grafico)
+    st.bar_chart(
+        grafico,
+        color = ["#FF0000", "#0000FF"],
+        horizontal= False,
+        use_container_width= True
+    )
 
 
 
@@ -184,8 +205,8 @@ if st.button("Calcular Carteira"):
         gap  = item['gap']
         
         if gap > 0:
-            st.info(f" {nome}: COMPRAR R$ {gap:,.2f}")
+            st.info(f" {nome}: :green[COMPRAR R$] {gap:,.2f}")
         else:
-            st.warning(f" {nome}: VENDER R$ {abs(gap):,.2f}")
+            st.warning(f" {nome}: :red[VENDER R$] {abs(gap):,.2f}")
 
             
