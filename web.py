@@ -106,7 +106,7 @@ if st.session_state["lista_acoes"]: #Salava ações em caso de Rerun.
 else:
     st.sidebar.caption("Nenhuma ação adicionada ainda.")
 
-1
+
 
 # Variáveis para receber metas e quantidades.
 meta = st.sidebar.number_input("Meta para Ações (%)", value = 0.0)
@@ -170,7 +170,7 @@ if st.button("Calcular Carteira"):
     )
 
     col3.metric(
-        'Total em Bitocoin',
+        'Total em Bitcoin',
         f"R${s_cripto:,.2f}",
         border= True
     )
