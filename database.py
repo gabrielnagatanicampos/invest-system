@@ -15,9 +15,10 @@ cursor.execute("""
 
 conexao.commit()
 
-def insert_user(username,password_hash, salt):
-
-
+def insert_user(username, password_hash, salt):
+    conexao = sqlite3.connect('banco.db')
+    conexao.row_factory = sqlite3.Row
+    cursor = conexao.cursor()
     sql =   """
             INSERT INTO usuarios(username, password_hash, salt)
             VALUES (?, ?, ?)
@@ -26,18 +27,27 @@ def insert_user(username,password_hash, salt):
     conexao.commit()
 
 def search_user(username):
-    sql = """
-        SELECT *
-        FROM usuarios
-        WHERE username = ?
-        """
     
-    cursor.execute(sql, (username,))
+    conexao = sqlite3.connect('banco.db')
+    conexao.row_factory = sqlite3.Row
     
-    user = cursor.fetchone()
+    try:
+        cursor = conexao.cursor()
+
+        sql = """
+            SELECT *
+            FROM usuarios
+            WHERE username = ?
+            """
+        
+        cursor.execute(sql, (username,))
     
+        user = cursor.fetchone()
     
-    return print(dict(user))
+
+        return user
+    finally:
+        conexao.close()
     
 
 def insert_transaction():

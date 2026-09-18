@@ -1,7 +1,11 @@
 from hashlib import sha512
 import uuid 
 import database
+import sqlite3
 import hmac
+
+class UsuarioJaExisteError(Exception):
+    pass
 
 def generate_hash(password:str, salt = None):
     if salt is None:
@@ -30,12 +34,13 @@ def login(username: str, password: str) -> bool:
 
 
 
-def register_user(username:str, password:str ):
+def register_user(username: str, password: str):
     
     password_hash, salt = generate_hash(password)
-    
-    database.insert_user(username, password_hash, salt)
-
+    try:
+        database.insert_user(username, password_hash, salt)
+    except sqlite3.IntegrityError:
+        raise UsuarioJaExisteError(f'Usuário{username} já existe ')
 
 
 
