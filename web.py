@@ -7,6 +7,7 @@ from regras import calcular_carteira
 from mercado import obter_preco
 from mercado import acoes
 import auth
+from invest_llm import invest_llm
 
 
 
@@ -78,7 +79,7 @@ def tela_login():
         label="Create an Account",
         type="secondary",
         use_container_width=True
-        )
+    )
     
     if submit_btn:
         login_validation(username, password)
@@ -194,7 +195,7 @@ def tela_principal():
     meta_cripto = st.sidebar.number_input("Meta para Criptomoeda (%)", value = 0.0)
 
 
-
+    
     # Botão para obter valores de ativos, calcular e apresentar 
     if st.button("Calcular Carteira"):                                              
                             
@@ -257,7 +258,7 @@ def tela_principal():
             delta_color= 'normal'
         )
 
-        st.write("   Relatório  ")
+        
 
         df = pd.DataFrame(resultado['itens'])  #transforma o relatorio em uma tabela.
 
@@ -282,20 +283,42 @@ def tela_principal():
             theme= 'streamlit',
             use_container_width= True
         )
+        
+        with col3: 
+            st.header('Recomendação:')
 
 
-
-
+    
+    
+   
         for item in resultado['itens']:
             nome = item['nome']
             gap  = item['gap']
+        
+            with col3:   
             
-            if gap > 0:
+             if gap > 0:
                 st.info(f" {nome}: :green[COMPRAR R$] {gap:,.2f}")
-            else:
+             else:
                 st.warning(f" {nome}: :red[VENDER R$] {abs(gap):,.2f}")
+                
+                
+        
+                
+                
+    
 
+    
+    
 
+# Inicializa o histórico de mensagens na sessão, caso ainda não exista
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+    
+# Exibe todas as mensagens anteriores armazenadas no estado da sessão
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 #Verifica se o user está logado ou não.
 if "logado" not in st.session_state:
@@ -304,6 +327,7 @@ if "logado" not in st.session_state:
 
 if st.session_state.logado == True:
     tela_principal()
+    invest_llm()
 else:
     tela_login()
 
