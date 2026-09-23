@@ -253,7 +253,9 @@ RECOMENDAÇÃO → PREVISÃO → ORDEM DE COMPRA/VENDA
 
     
 def invest_llm():    
-    
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
     client = Groq()
     
     if prompt := st.chat_input('Qual sua duvida?'):
@@ -282,7 +284,7 @@ def invest_llm():
                             # Chama a API da Groq para gerar a resposta do assistente
                             chat_completion = client.chat.completions.create(
                                 messages = messages_for_api,
-                                model = "openai/gpt-oss-120b", 
+                                model = "openai/gpt-oss-20b", 
                                 temperature = 0.7,
                                 max_tokens = 2048,
                             )

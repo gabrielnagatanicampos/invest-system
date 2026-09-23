@@ -315,10 +315,6 @@ def tela_principal():
 if "messages" not in st.session_state:
     st.session_state.messages = []
     
-# Exibe todas as mensagens anteriores armazenadas no estado da sessão
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
 
 #Verifica se o user está logado ou não.
 if "logado" not in st.session_state:
