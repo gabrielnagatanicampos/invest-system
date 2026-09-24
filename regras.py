@@ -3,7 +3,7 @@
 
 
 
-def calcular_carteira(carteira):
+def calcular_carteira(carteira: list):
     total = 0
 
 
