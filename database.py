@@ -31,7 +31,7 @@ cursor.execute("""
 
 conexao.commit()
 
-def insert_user(username, password_hash, salt):
+def insert_user(username:str, password_hash: str, salt):
     conexao = sqlite3.connect('banco.db')
     conexao.row_factory = sqlite3.Row
     cursor = conexao.cursor()
@@ -42,7 +42,7 @@ def insert_user(username, password_hash, salt):
     cursor.execute(sql, (username, password_hash, salt))
     conexao.commit()
 
-def search_user(username):
+def search_user(username: str):
     
     conexao = sqlite3.connect('banco.db')
     conexao.row_factory = sqlite3.Row
@@ -66,7 +66,7 @@ def search_user(username):
         conexao.close()
     
 
-def insert_ticker(usuario_id, ticker, qnt):
+def insert_ticker(usuario_id: int, ticker: str, qnt: int):
     conexao = sqlite3.connect('banco.db')
     conexao.row_factory = sqlite3.Row
     
@@ -89,7 +89,7 @@ def insert_ticker(usuario_id, ticker, qnt):
         
       
         
-def read_ticker(usuario_id):
+def read_ticker(usuario_id: int):
     conexao = sqlite3.connect('banco.db')
     conexao.row_factory = sqlite3.Row
     try:
@@ -103,20 +103,45 @@ def read_ticker(usuario_id):
         
         cursor.execute(sql, (usuario_id,))
     
-        ticker = cursor.fetchall()
+        read_ticker = cursor.fetchall()
     
 
-        return ticker
+        return read_ticker
     finally:
         conexao.close()
         
     
 
 
-def delete_transaction():
-    pass   
+def delete_ticker(usuario_id: int, ticker: str):
+    conexao = sqlite3.connect('banco.db')
+    conexao.row_factory = sqlite3.Row
+    
+    try:
+        cursor = conexao.cursor()
+        sql = """
+            DELETE FROM carteira
+            WHERE usuario_id = ? AND ticker = ?    
+            """
+            
+        cursor.execute(sql, (usuario_id, ticker))
+        delete_ticker = cursor.fetchall()
+        
+    finally:
+        conexao.close()   
 
-
-insert_ticker(1,'PETR3', 30)
-
-print(read_ticker(1))
+def update_ticker(quantidade: int, usuario_id: int,ticker: str):
+    conexao = sqlite3.connect('banco.db')
+    conexao.row_factory = sqlite3.Row    
+    try:
+        cursor = conexao.cursor()
+        sql = """
+            UPDATE carteira
+            SET quantidade = ?
+            WHERE usuario_id = ? AND ticker = ?    
+            """
+        
+        cursor.execute(sql, (quantidade, usuario_id,ticker))
+        
+    finally:
+        conexao.close()
