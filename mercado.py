@@ -1,14 +1,15 @@
 import yfinance as yf 
 
-def obter_preco(ticker):
+def obter_preco(ticker:str):
    
     try:
         acao = yf.Ticker(ticker)
-        dados = acao.history(period="1d")
+        dados = acao.history(period="5d", auto_adjust=True)
         
         
         if dados.empty: #Se a tabela estiver vazia (ticker errado), retorna nada.
-            return 0.0
+            return 0.0 
+            
             
         
         return float(dados['Close'].iloc[-1])
