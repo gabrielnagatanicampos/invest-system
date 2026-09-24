@@ -275,7 +275,7 @@ def invest_llm():
                 messages_for_api.append(msg)
                 
                 
-            with st.chat_message("assistant"):
+            with st.chat_message("assistant", avatar='📊'):
             
                 with st.spinner("Analisando sua pergunta..."):
                 
