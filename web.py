@@ -8,6 +8,7 @@ from mercado import obter_preco
 from mercado import acoes
 import auth
 from invest_llm import invest_llm
+import database
 
 
 
@@ -24,12 +25,15 @@ st.set_page_config(
 
 
 @st.dialog('Alert')
-def login_validation(username, password):
+def login_validation(username:str, password: str):
     if username == '' or password == '':
         st.error('digite seu nome de usuário e senha.')
     elif auth.login(username, password):
         st.session_state.logado = True 
         st.session_state.usuario = username
+        user = database.search_user(username)
+        usuario_id = user['id']
+        st.session_state.usuario_id = usuario_id
         st.success('Login validado')
         
         if st.button('Continuar', use_container_width= True):
@@ -96,8 +100,11 @@ def tela_principal():
     st.header("Suas Ações:")
     st.text("Selecione o ativo para remover")
     #Memória
+    usuario_id = st.session_state.usuario_id 
+    
     if "lista_acoes" not in st.session_state:
-        st.session_state["lista_acoes"] = {}
+        lista_acoes = database.read_ticker(usuario_id)
+        st.session_state["lista_acoes"] = {row['ticker']: row['quantidade'] for row in lista_acoes}
 
     #Adicionar Ações
     st.sidebar.header('Adicionar ações')
@@ -115,7 +122,7 @@ def tela_principal():
     if st.sidebar.button('Adicionar'):
 
         st.session_state["lista_acoes"][ticker_input] = qnt_input
-
+        database.insert_ticker(usuario_id, ticker_input, qnt_input)
         st.sidebar.success(f"{ticker_input} adicionado!")
 
     st.sidebar.markdown("---") 
