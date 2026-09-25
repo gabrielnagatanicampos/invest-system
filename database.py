@@ -31,6 +31,21 @@ cursor.execute("""
 
 conexao.commit()
 
+cursor.execute("""
+           CREATE TABLE  carteira_config(
+           id INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
+           usuario_id INTEGER NOT NULL, 
+           saldo_renda_fixa NUMERIC,
+           qnt_cripto NUMERIC,
+           meta_acoes NUMERIC,
+           meta_cripto NUMERIC,
+           FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+           UNIQUE(usuario_id)   
+           )""")
+
+conexao.commit()
+
+
 def insert_user(username:str, password_hash: str, salt):
     conexao = sqlite3.connect('banco.db')
     conexao.row_factory = sqlite3.Row
@@ -103,10 +118,10 @@ def read_ticker(usuario_id: int):
         
         cursor.execute(sql, (usuario_id,))
     
-        read_ticker = cursor.fetchall()
+        read = cursor.fetchall()
     
 
-        return read_ticker
+        return read
     finally:
         conexao.close()
         
@@ -125,7 +140,7 @@ def delete_ticker(usuario_id: int, ticker: str):
             """
             
         cursor.execute(sql, (usuario_id, ticker))
-        delete_ticker = cursor.fetchall()
+        conexao.commit()
         
     finally:
         conexao.close()   
@@ -142,6 +157,8 @@ def update_ticker(quantidade: int, usuario_id: int,ticker: str):
             """
         
         cursor.execute(sql, (quantidade, usuario_id,ticker))
+        conexao.commit()
+        
         
     finally:
         conexao.close()
