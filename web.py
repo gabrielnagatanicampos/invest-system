@@ -9,7 +9,8 @@ from invest_llm import invest_llm
 import database
 
 
-obter_preco = st.cache_data(obter_preco)
+# ttl evita que um 0.0 de falha de rede fique em cache para sempre
+obter_preco = st.cache_data(ttl=300)(obter_preco)
 
 
 st.set_page_config(
@@ -256,9 +257,12 @@ def carregar_acoes(usuario_id):
 def carregar_dados_acoes():
     lista_precos = []
     soma_acoes = 0.0
+    sem_preco = []
 
     for ticker, quantidade in st.session_state["lista_acoes"].items():
         preco = obter_preco(ticker)
+        if preco <= 0:
+            sem_preco.append(ticker)
         total_ativo = preco * quantidade
 
         soma_acoes += total_ativo
@@ -270,6 +274,12 @@ def carregar_dados_acoes():
                 "Preço": preco,
                 "Total(R$)": total_ativo
             }
+        )
+
+    if sem_preco:
+        st.warning(
+            "Sem cotação para: " + ", ".join(sem_preco)
+            + ". Esses ativos valem R$ 0 no total. O código pode ter mudado ou o ativo deixou de existir."
         )
 
     if not lista_precos:
