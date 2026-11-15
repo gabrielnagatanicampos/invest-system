@@ -136,5 +136,42 @@ def test_nome_de_usuario_e_unico(banco, ids):
         banco.insert_user("ana", "x", "y")
 
 
+def test_salvar_email_e_search_user(banco, ids):
+    banco.salvar_email(ids[0], "exemplo@example.com")
+    assert banco.search_user("ana")["email"] == "exemplo@example.com"
+    assert banco.search_user("bia")["email"] is None
+
+
+def test_listar_usuarios_com_email_so_de_quem_tem(banco, ids):
+    banco.salvar_email(ids[0], "exemplo@example.com")
+    assert banco.listar_usuarios_com_email() == [
+        {"id": ids[0], "username": "ana", "email": "exemplo@example.com"}
+    ]
+
+
+def test_listar_usuarios_com_email_vazio(banco, ids):
+    assert banco.listar_usuarios_com_email() == []
+
+
+def test_migracao_de_banco_antigo_sem_coluna_email(banco, tmp_path):
+    import importlib
+    antigo = tmp_path / "banco.db"
+    antigo.unlink()
+    con = sqlite3.connect(antigo)
+    con.execute("""CREATE TABLE usuarios(
+        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL,
+        salt TEXT NOT NULL, created_on DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+    con.execute("INSERT INTO usuarios(username, password_hash, salt) VALUES ('ana','h','s')")
+    con.commit()
+    con.close()
+    importlib.reload(banco)
+    banco.init_db()
+    banco.init_db()  # rodar duas vezes não pode falhar
+    assert banco.search_user("ana")["email"] is None
+    banco.salvar_email(1, "exemplo@example.com")
+    assert banco.listar_usuarios_com_email()[0]["username"] == "ana"
+
+
 def test_banco_de_teste_fica_na_pasta_temporaria(banco, tmp_path):
     assert (tmp_path / "banco.db").exists()
