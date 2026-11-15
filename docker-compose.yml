@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?defina no .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina no .env}
+      POSTGRES_DB: ${POSTGRES_DB:?defina no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # sem "ports": o banco só é acessível pela rede interna do compose
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+    depends_on:
+      db:
+        condition: service_healthy
+    # APP_BIND=127.0.0.1 quando há domínio (o deploy.sh faz isso)
+    ports:
+      - "${APP_BIND:-0.0.0.0}:8501:8501"
+
+  job-alertas:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}}
+      ALERTA_INTERVALO_MIN: ${ALERTA_INTERVALO_MIN:-1440}
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - 'while true; do python job_alertas.py; sleep $$((ALERTA_INTERVALO_MIN * 60)); done'
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    profiles: ["https"]
+    environment:
+      DOMINIO: ${DOMINIO:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
