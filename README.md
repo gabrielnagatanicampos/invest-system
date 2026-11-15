@@ -62,6 +62,88 @@ O `.env` e o banco de dados (`banco.db`) não são versionados, então cada pess
 streamlit run web.py
 ```
 
+## Como publicar na VPS
+
+Guia para uma VPS gratuita da Oracle Cloud (Ubuntu) usando Docker. Tudo roda em containers: app (Streamlit), banco (Postgres), job de alertas e, se houver domínio, o Caddy (HTTPS automático).
+
+### Pré-requisitos
+
+- VPS Ubuntu com acesso SSH (por exemplo, pelo MobaXterm) e usuário com `sudo`.
+- Repositório clonado na VPS (`git clone <url-do-repositorio>`).
+- Descubra a arquitetura com `uname -m`: `x86_64` (x86) ou `aarch64` (ARM). As imagens usadas (`python:3.11-slim`, `postgres:16`, `caddy:2`) funcionam nas duas.
+- Opcional: um domínio com o DNS (registro A) apontando para o IP da VPS, para ter HTTPS.
+
+### Portas e firewall
+
+Libere em dois lugares, senão o site não abre:
+
+1. Painel da Oracle: Rede > VCN > Lista de segurança (ou NSG) > regra de entrada TCP para as portas 80 e 443 (e 8501 se for acessar sem domínio), origem `0.0.0.0/0`.
+2. Firewall do Ubuntu na própria VPS (as imagens da Oracle costumam bloquear por padrão):
+
+```bash
+# se usa iptables (padrão nas imagens da Oracle)
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8501 -j ACCEPT   # só sem domínio
+sudo netfilter-persistent save
+
+# ou, se usa ufw
+sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw allow 8501/tcp
+```
+
+O Postgres não é exposto: não abra a porta 5432.
+
+### Configurar o .env
+
+```bash
+cp .env.example .env
+nano .env    # preencha senha do banco, GROQ_API_KEY, SMTP_*, DOMINIO
+```
+
+Deixe `DOMINIO` vazio para acessar em `http://IP-DA-VPS:8501`. Com domínio, o app fica em `https://seu-dominio`. Se o `.env` estiver no seu computador, copie com o painel de arquivos do MobaXterm ou `scp .env usuario@IP-DA-VPS:~/invest-system/`.
+
+### Publicar
+
+```bash
+./scripts/deploy.sh
+```
+
+O script instala o Docker se faltar, confere o `.env`, faz `git pull`, sobe tudo com `docker compose up -d --build` e mostra o `docker compose ps`. Pode rodar de novo a qualquer momento. Se o Docker acabou de ser instalado, saia e entre de novo no SSH para o grupo `docker` valer.
+
+### Dia a dia
+
+```bash
+docker compose logs -f app    # logs (troque por db, job-alertas ou caddy)
+docker compose ps             # estado dos containers
+./scripts/deploy.sh           # atualizar para a versão mais nova
+./scripts/backup.sh           # backup em backups/invest_DATA.sql.gz
+```
+
+Backup diário automático (`crontab -e`):
+
+```
+0 3 * * * /home/ubuntu/invest-system/scripts/backup.sh >> /home/ubuntu/backup.log 2>&1
+```
+
+Restaurar um backup:
+
+```bash
+gunzip -c backups/invest_AAAAMMDD_HHMMSS.sql.gz | docker compose exec -T db psql -U USUARIO_DO_ENV -d NOME_DO_BANCO
+```
+
+### Checklist de verificação
+
+- [ ] `docker compose ps` mostra app, db e job-alertas rodando (e caddy, se houver domínio).
+- [ ] A página abre (`http://IP:8501` ou `https://dominio`) e, com domínio, o cadeado do HTTPS aparece.
+- [ ] Cadastro de um usuário de teste e login funcionam.
+- [ ] Depois de `docker compose restart` (ou reiniciar a VPS), o login do usuário de teste continua valendo: os dados persistem no volume `pgdata`.
+- [ ] Teste o e-mail primeiro sem enviar: `docker compose exec job-alertas python job_alertas.py --dry-run`; só depois sem `--dry-run`.
+- [ ] O intervalo do job vem de `ALERTA_INTERVALO_MIN` (padrão 1440 minutos).
+
+### Trocar para o Supabase
+
+Crie o projeto no Supabase, copie a string de conexão do Postgres e coloque no `.env` como `DATABASE_URL=...`. Nenhuma outra mudança é necessária: o compose usa essa variável no lugar da montada para o container `db`. Depois, se quiser, remova o serviço `db` do `docker-compose.yml`.
+
 ## Próximos passos
 
 - Fazer a IA ler e interpretar os dados da carteira do usuário.
