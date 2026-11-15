@@ -14,6 +14,7 @@ def banco(tmp_path, monkeypatch):
     """Recarrega o módulo database apontando para um banco.db temporário."""
     monkeypatch.chdir(tmp_path)
     import database
+    monkeypatch.delenv("DATABASE_URL", raising=False)
     importlib.reload(database)
+    database.init_db()
     yield database
-    database.conexao.close()
