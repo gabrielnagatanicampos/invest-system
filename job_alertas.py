@@ -1,0 +1,95 @@
+"""Job de alertas: calcula a carteira de cada usuário e envia e-mail se precisar.
+
+Uso: python job_alertas.py [--dry-run] [--limite 5]
+"""
+import argparse
+import logging
+
+from alertas import LIMITE_PADRAO_PP, avaliar_alertas
+
+log = logging.getLogger("job_alertas")
+
+
+def montar_carteira(dados: dict, obter_preco) -> list:
+    """Monta a carteira como o dashboard (ações, renda fixa, cripto)."""
+    soma_acoes = sum(
+        obter_preco(a["ticker"]) * a["quantidade"] for a in dados["ativos"]
+    )
+    saldo_cripto = (
+        dados["quantidade_de_criptomoeda"]
+        * obter_preco("BTC-USD")
+        * obter_preco("BRL=X")
+    )
+    meta_acoes = dados["percentual_meta_acoes"]
+    meta_cripto = dados["percentual_meta_cripto"]
+    return [
+        {"nome": "Ações", "saldo": soma_acoes, "meta": meta_acoes},
+        {"nome": "Renda Fixa", "saldo": dados["saldo_renda_fixa"],
+         "meta": 100 - meta_acoes - meta_cripto},
+        {"nome": "CriptoMoeda", "saldo": saldo_cripto, "meta": meta_cripto},
+    ]
+
+
+def montar_email(username: str, avaliacao: dict, limite_pp: float):
+    assunto = "Invest System: pontos de atenção na sua carteira"
+    linhas = [
+        f"Olá, {username}.",
+        "",
+        f"Estas classes estão a mais de {limite_pp:g} pontos percentuais da meta:",
+        "",
+    ]
+    for a in avaliacao["alertas"]:
+        linhas.append(
+            f"- {a['nome']}: {a['percentual_atual']:.1f}% (meta {a['meta']:.1f}%). "
+            f"Sugestão: {a['acao']} R$ {a['valor']:,.2f}."
+        )
+    linhas += [
+        "",
+        f"Para o próximo aporte, priorize: {avaliacao['sugestao_aporte']}.",
+        "",
+        "Esta é uma mensagem automática do Invest System.",
+    ]
+    return assunto, "\n".join(linhas)
+
+
+def executar(limite_pp=LIMITE_PADRAO_PP, dry_run=False, listar_usuarios=None,
+             load_carteira=None, obter_preco=None, enviar=None) -> dict:
+    if listar_usuarios is None or load_carteira is None:
+        import database
+        listar_usuarios = listar_usuarios or database.listar_usuarios_com_email
+        load_carteira = load_carteira or database.load_carteira
+    if obter_preco is None:
+        from mercado import obter_preco
+    if enviar is None:
+        from emailer import enviar_email as enviar
+
+    resumo = {"enviados": 0, "sem_alerta": 0, "falhas": 0}
+    for u in listar_usuarios():
+        try:
+            dados = load_carteira(u["id"])
+            if dados is None:
+                resumo["sem_alerta"] += 1
+                continue
+            avaliacao = avaliar_alertas(montar_carteira(dados, obter_preco), limite_pp)
+            if not avaliacao["alertas"]:
+                resumo["sem_alerta"] += 1
+                continue
+            assunto, corpo = montar_email(u["username"], avaliacao, limite_pp)
+            if dry_run:
+                print(f"[dry-run] Para usuário id={u['id']}\n{assunto}\n{corpo}\n")
+            else:
+                enviar(u["email"], assunto, corpo)
+            resumo["enviados"] += 1
+        except Exception:
+            resumo["falhas"] += 1
+            log.exception("Falha ao processar usuário id=%s", u.get("id"))
+    return resumo
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    p = argparse.ArgumentParser()
+    p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--limite", type=float, default=LIMITE_PADRAO_PP)
+    args = p.parse_args()
+    print(executar(limite_pp=args.limite, dry_run=args.dry_run))
