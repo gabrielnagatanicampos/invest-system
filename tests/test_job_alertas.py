@@ -70,3 +70,21 @@ def test_dry_run_nao_envia(capsys):
     r = rodar(enviar, dry_run=True)
     assert r["enviados"] == 2
     assert "exemplo@example.com" not in capsys.readouterr().out
+
+
+def test_preco_zero_nao_gera_alerta_falso():
+    import job_alertas
+
+    dados = {
+        "ativos": [{"ticker": "PETR4.SA", "quantidade": 10}],
+        "quantidade_de_criptomoeda": 0,
+        "percentual_meta_acoes": 50,
+        "percentual_meta_cripto": 0,
+        "saldo_renda_fixa": 1000,
+    }
+    try:
+        job_alertas.montar_carteira(dados, lambda t: 0.0)
+    except ValueError as erro:
+        assert "PETR4.SA" in str(erro)
+    else:
+        raise AssertionError("deveria recusar preço zero")

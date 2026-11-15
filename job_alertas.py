@@ -11,15 +11,20 @@ log = logging.getLogger("job_alertas")
 
 
 def montar_carteira(dados: dict, obter_preco) -> list:
-    """Monta a carteira como o dashboard (ações, renda fixa, cripto)."""
-    soma_acoes = sum(
-        obter_preco(a["ticker"]) * a["quantidade"] for a in dados["ativos"]
-    )
-    saldo_cripto = (
-        dados["quantidade_de_criptomoeda"]
-        * obter_preco("BTC-USD")
-        * obter_preco("BRL=X")
-    )
+    """Monta a carteira como o dashboard (ações, renda fixa, cripto).
+
+    Se faltar cotação de algo que o usuário possui, levanta ValueError:
+    melhor não enviar nada do que mandar um alerta calculado com preço zero.
+    """
+    def preco(ticker):
+        valor = obter_preco(ticker)
+        if not valor or valor <= 0:
+            raise ValueError(f"sem cotação para {ticker}")
+        return valor
+
+    soma_acoes = sum(preco(a["ticker"]) * a["quantidade"] for a in dados["ativos"])
+    qnt_cripto = dados["quantidade_de_criptomoeda"]
+    saldo_cripto = qnt_cripto * preco("BTC-USD") * preco("BRL=X") if qnt_cripto else 0.0
     meta_acoes = dados["percentual_meta_acoes"]
     meta_cripto = dados["percentual_meta_cripto"]
     return [
