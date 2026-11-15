@@ -355,6 +355,20 @@ def sidebar_acoes(usuario_id):
 
     st.sidebar.divider()
 
+    st.sidebar.markdown("### E-mail para alertas")
+    registro = database.search_user(st.session_state.usuario)
+    email_atual = (registro["email"] if registro and "email" in registro.keys() else "") or ""
+    email_input = st.sidebar.text_input("E-mail", value=email_atual)
+    if st.sidebar.button("Salvar e-mail"):
+        email_limpo = email_input.strip()
+        if email_limpo and ("@" not in email_limpo or " " in email_limpo):
+            st.sidebar.error("Digite um e-mail válido.")
+        else:
+            database.salvar_email(st.session_state.usuario_id, email_limpo or None)
+            st.sidebar.success("E-mail salvo.")
+
+    st.sidebar.divider()
+
     st.sidebar.markdown("### Configuração da carteira")
 
 

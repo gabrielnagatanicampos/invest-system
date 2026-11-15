@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS carteira(
 CREATE TABLE IF NOT EXISTS carteira_config(
     id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
-    saldo_renda_fixa NUMERIC,
-    qnt_cripto NUMERIC,
-    meta_acoes NUMERIC,
-    meta_cripto NUMERIC,
+    saldo_renda_fixa DOUBLE PRECISION,
+    qnt_cripto DOUBLE PRECISION,
+    meta_acoes DOUBLE PRECISION,
+    meta_cripto DOUBLE PRECISION,
     UNIQUE(usuario_id)
 );
