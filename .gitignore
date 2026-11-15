@@ -1,0 +1,16 @@
+# segredos e dados locais (nunca versionar)
+.env
+.streamlit/secrets.toml
+banco.db
+*.db
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# ferramentas
+.claude/settings.local.json
+.worktrees/
