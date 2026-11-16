@@ -155,7 +155,6 @@ def login_validation(username: str, password: str):
         st.error("Usuário ou senha inválidos.")
 
 
-@st.dialog("Criar conta")
 def email_valido(email: str) -> bool:
     """Aceita vazio (opcional) ou algo no formato a@b.c, sem espaços."""
     if not email:
@@ -163,6 +162,7 @@ def email_valido(email: str) -> bool:
     return " " not in email and "@" in email and "." in email.split("@")[-1]
 
 
+@st.dialog("Criar conta")
 def cadastro():
     new_user = st.text_input(
         "Usuário",
