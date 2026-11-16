@@ -88,3 +88,17 @@ def test_preco_zero_nao_gera_alerta_falso():
         assert "PETR4.SA" in str(erro)
     else:
         raise AssertionError("deveria recusar preço zero")
+
+
+def test_email_usa_formato_brasileiro():
+    import job_alertas
+
+    avaliacao = {
+        "alertas": [{"nome": "Ações", "percentual_atual": 6.5, "meta": 50.0,
+                     "acao": "comprar", "valor": 4650.5}],
+        "sugestao_aporte": "Ações",
+    }
+    _, corpo = job_alertas.montar_email("teste", avaliacao, 5.0)
+    assert "R$ 4.650,50" in corpo
+    assert "6,5% (meta 50,0%)" in corpo
+    assert "mais de 5 pontos" in corpo

@@ -156,6 +156,13 @@ def login_validation(username: str, password: str):
 
 
 @st.dialog("Criar conta")
+def email_valido(email: str) -> bool:
+    """Aceita vazio (opcional) ou algo no formato a@b.c, sem espaços."""
+    if not email:
+        return True
+    return " " not in email and "@" in email and "." in email.split("@")[-1]
+
+
 def cadastro():
     new_user = st.text_input(
         "Usuário",
@@ -174,6 +181,11 @@ def cadastro():
         key="cadastro_confirmacao"
     )
 
+    new_email = st.text_input(
+        "E-mail para receber alertas da carteira (opcional)",
+        key="cadastro_email"
+    ).strip()
+
     if st.button(
         "Cadastrar",
         use_container_width=True,
@@ -188,8 +200,15 @@ def cadastro():
             st.error("As senhas são diferentes.")
             return
 
+        if not email_valido(new_email):
+            st.error("Digite um e-mail válido ou deixe em branco.")
+            return
+
         try:
             auth.register_user(new_user.strip(), new_psw)
+            if new_email:
+                novo = database.search_user(new_user.strip())
+                database.salvar_email(novo["id"], new_email)
             st.success("Conta criada. Feche esta janela e faça login.")
         except auth.UsuarioJaExisteError:
             st.error("Esse usuário já existe.")
@@ -361,7 +380,7 @@ def sidebar_acoes(usuario_id):
     email_input = st.sidebar.text_input("E-mail", value=email_atual)
     if st.sidebar.button("Salvar e-mail"):
         email_limpo = email_input.strip()
-        if email_limpo and ("@" not in email_limpo or " " in email_limpo):
+        if not email_valido(email_limpo):
             st.sidebar.error("Digite um e-mail válido.")
         else:
             database.salvar_email(st.session_state.usuario_id, email_limpo or None)

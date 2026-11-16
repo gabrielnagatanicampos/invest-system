@@ -35,18 +35,28 @@ def montar_carteira(dados: dict, obter_preco) -> list:
     ]
 
 
+def _brl(valor: float) -> str:
+    """4650.5 -> '4.650,50' (formato brasileiro)."""
+    return f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _pct(valor: float) -> str:
+    """6.5 -> '6,5'."""
+    return f"{valor:.1f}".replace(".", ",")
+
+
 def montar_email(username: str, avaliacao: dict, limite_pp: float):
     assunto = "Invest System: pontos de atenção na sua carteira"
     linhas = [
         f"Olá, {username}.",
         "",
-        f"Estas classes estão a mais de {limite_pp:g} pontos percentuais da meta:",
+        f"Estas classes estão a mais de {_pct(limite_pp).rstrip('0').rstrip(',')} pontos percentuais da meta:",
         "",
     ]
     for a in avaliacao["alertas"]:
         linhas.append(
-            f"- {a['nome']}: {a['percentual_atual']:.1f}% (meta {a['meta']:.1f}%). "
-            f"Sugestão: {a['acao']} R$ {a['valor']:,.2f}."
+            f"- {a['nome']}: {_pct(a['percentual_atual'])}% (meta {_pct(a['meta'])}%). "
+            f"Sugestão: {a['acao']} R$ {_brl(a['valor'])}."
         )
     linhas += [
         "",
