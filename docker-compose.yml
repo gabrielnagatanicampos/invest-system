@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     # APP_BIND=127.0.0.1 quando há domínio (o deploy.sh faz isso)
     ports:
-      - "${APP_BIND:-0.0.0.0}:8501:8501"
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8501}:8501"
 
   job-alertas:
     build: .

@@ -100,7 +100,7 @@ cp .env.example .env
 nano .env    # preencha senha do banco, GROQ_API_KEY, SMTP_*, DOMINIO
 ```
 
-Deixe `DOMINIO` vazio para acessar em `http://IP-DA-VPS:8501`. Com domínio, o app fica em `https://seu-dominio`. Se o `.env` estiver no seu computador, copie com o painel de arquivos do MobaXterm ou `scp .env usuario@IP-DA-VPS:~/invest-system/`.
+Deixe `DOMINIO` vazio para acessar em `http://IP-DA-VPS:8501` (ou na porta de `APP_PORT`, se você mudou). Com domínio, o app fica em `https://seu-dominio`. Se o `.env` estiver no seu computador, copie com o painel de arquivos do MobaXterm ou `scp .env usuario@IP-DA-VPS:~/invest-system/`.
 
 ### Publicar
 
