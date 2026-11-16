@@ -164,34 +164,38 @@ def email_valido(email: str) -> bool:
 
 @st.dialog("Criar conta")
 def cadastro():
-    new_user = st.text_input(
-        "Usuário",
-        key="cadastro_usuario"
-    )
+    # st.form: os campos só são lidos ao clicar em "Cadastrar", então digitar,
+    # usar Tab ou Enter não recarrega a janela nem apaga o que foi preenchido.
+    with st.form("form_cadastro", border=False):
+        new_user = st.text_input(
+            "Usuário",
+            key="cadastro_usuario"
+        )
 
-    new_psw = st.text_input(
-        "Senha",
-        type="password",
-        key="cadastro_senha"
-    )
+        new_psw = st.text_input(
+            "Senha",
+            type="password",
+            key="cadastro_senha"
+        )
 
-    new_psw2 = st.text_input(
-        "Confirme sua senha",
-        type="password",
-        key="cadastro_confirmacao"
-    )
+        new_psw2 = st.text_input(
+            "Confirme sua senha",
+            type="password",
+            key="cadastro_confirmacao"
+        )
 
-    new_email = st.text_input(
-        "E-mail para receber alertas da carteira (opcional)",
-        key="cadastro_email"
-    ).strip()
+        new_email = st.text_input(
+            "E-mail para receber alertas da carteira (opcional)",
+            key="cadastro_email"
+        ).strip()
 
-    if st.button(
-        "Cadastrar",
-        use_container_width=True,
-        type="primary",
-        key="cadastrar_usuario"
-    ):
+        enviado = st.form_submit_button(
+            "Cadastrar",
+            use_container_width=True,
+            type="primary"
+        )
+
+    if enviado:
         if not new_user.strip() or not new_psw or not new_psw2:
             st.error("Preencha todos os campos.")
             return
